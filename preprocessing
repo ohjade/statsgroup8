@@ -68,10 +68,12 @@ MA_para <- SMA(ts_para, n = window_size)
 ```{r}
 # Linear model
 time_index <- time(ts_flies)
-linear_model <- lm(ts_flies ~ time_index)
+lm_flies <- lm(ts_flies ~ time_index)
+summary(lm_flies)
 
 time_index <- time(ts_para)
-linear_model <- lm(ts_para ~ time_index)
+lm_para <- lm(ts_para ~ time_index)
+summary(lm_para)
 ```
 
 
@@ -88,11 +90,11 @@ plot(fitted(arima_para), col = "red", xlab = "Time", ylab = "Value", main = "ARI
 ```{r}
 # Basic plotting of time series all the other stuff we calculated
 plot(ts_flies, xlab = "Time", ylab = "Value", main = "Time Series of Flies")
-abline(linear_model, col = "red")
+abline(lm_flies, col = "red")
 # lines(MA_flies, col = "purple")
 lines(fitted(arima_flies), col = "lightgreen")
 
 plot(ts_para, xlab = "Time", ylab = "Value", main = "Time Series of Parasites")
-abline(linear_model, col = "red")
+abline(lm_para, col = "red")
 # lines(MA_para, col = "purple")
 lines(fitted(arima_para), col = "lightgreen")
