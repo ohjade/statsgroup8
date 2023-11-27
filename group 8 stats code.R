@@ -1,0 +1,119 @@
+flies = c14['TF']
+fliestime = c14[c('TF', 'week')]
+parasites = c14['TP']
+ptime <- c14[c('TP', 'week')]
+fliespara <- c14[c('TP', 'TF')]
+
+#Plot the time series to visually inspect
+#Flies and parasites over time
+ggplot(c14, aes(x = week)) +
+  geom_line(aes(y = TF), color = "blue", size = 1, linetype = "solid", alpha = 0.8) +
+  geom_line(aes(y = TP), color = "red", size = 1, linetype = "solid", alpha = 0.8) +
+  labs(title = "Flies and Parasites Over Time",
+       x = "Weeks",
+       y = "Counts")
+
+#Do the acf to determine the autoregressive (p) component in an ARIMA model
+#All data interactions, 2x2 plot
+acf(fliespara, lag.max = 20, plot = TRUE)
+
+#Not stationary
+#Best to use 4 as lifespan of fly, or maybe 5
+#Then do for other three series
+
+#Condition the data?
+#Flies
+flies$TF_c <- c(rep(mean(flies$TF), 4), diff(flies$TF, lag = 4))
+#Parasites
+parasites$TP_c <- c(rep(mean(parasites$TP), 4), diff(parasites$TP, lag = 4))
+#Join back together
+flies_c <- flies[,'TF_c']
+parasites_c <- parasites[,'TP_c']
+fliesparasites_c <- cbind(flies_c, parasites_c)
+
+#Replot the conditioned data
+acf(fliesparasites_c, lag.max = 20, plot = TRUE)
+
+#Next steps: look at the other cage runs
+#Are the significant lags at the same place?
+#The lags once corrected then become the number of weeks you specified in the diff
+#Can look if there is the same importance of weeks in the other three time series
+#ARMA model on a log scale, choose the same noisy parameter as the ACF one
+
+#########################################################c11
+fliespara11 <- c11[c('TP', 'TF')]
+flies11 <- c11['TF']
+parasites11 <- c11['TP']
+#removing the last row because missing parasite data lol
+flies11 <- flies11[-159,]
+parasites11 <- parasites11[-159,]
+fliespara11 <- fliespara11[-159,]
+
+ggplot(c11, aes(x = week)) +
+  geom_line(aes(y = TF), color = "blue", size = 1, linetype = "solid", alpha = 0.8) +
+  geom_line(aes(y = TP), color = "red", size = 1, linetype = "solid", alpha = 0.8) +
+  labs(title = "Flies and Parasites Over Time",
+       x = "Weeks",
+       y = "Counts")
+
+acf(fliespara11, lag.max = 20, plot = TRUE)
+
+flies11$TF_c <- c(rep(mean(flies11$TF), 4), diff(flies11$TF, lag = 4))
+
+parasites11$TP_c <- c(rep(mean(parasites11$TP), 4), diff(parasites11$TP, lag = 4))
+
+flies11_c <- flies11[,'TF_c']
+parasites11_c <- parasites11[,'TP_c']
+fliesparasites11_c <- cbind(flies11_c, parasites11_c)
+
+acf(fliesparasites11_c, lag.max = 20, plot = TRUE)
+
+#########################################################c29
+fliespara29 <- c29[c('TP', 'TF')]
+flies29 <- c29['TF']
+parasites29 <- c29['TP']
+
+ggplot(c29, aes(x = week)) +
+  geom_line(aes(y = TF), color = "blue", size = 1, linetype = "solid", alpha = 0.8) +
+  geom_line(aes(y = TP), color = "red", size = 1, linetype = "solid", alpha = 0.8) +
+  labs(title = "Flies and Parasites Over Time",
+       x = "Weeks",
+       y = "Counts")
+
+acf(fliespara29, lag.max = 20, plot = TRUE)
+
+flies29$TF_c <- c(rep(mean(flies29$TF), 4), diff(flies29$TF, lag = 4))
+
+parasites29$TP_c <- c(rep(mean(parasites29$TP), 4), diff(parasites29$TP, lag = 4))
+
+flies29_c <- flies29[,'TF_c']
+parasites29_c <- parasites29[,'TP_c']
+fliesparasites29_c <- cbind(flies29_c, parasites29_c)
+
+acf(fliesparasites29_c, lag.max = 20, plot = TRUE)
+#WEEKS 4 AND EIGHT ARE IMPORTANT IN THIS RUN
+
+#########################################################c38
+fliespara38 <- c38[c('TP', 'TF')]
+flies38 <- c38['TF']
+parasites38 <- c38['TP']
+
+ggplot(c38, aes(x = week)) +
+  geom_line(aes(y = TF), color = "blue", size = 1, linetype = "solid", alpha = 0.8) +
+  geom_line(aes(y = TP), color = "red", size = 1, linetype = "solid", alpha = 0.8) +
+  labs(title = "Flies and Parasites Over Time",
+       x = "Weeks",
+       y = "Counts")
+
+acf(fliespara38, lag.max = 20, plot = TRUE)
+
+flies38$TF_c <- c(rep(mean(flies38$TF), 4), diff(flies38$TF, lag = 4))
+
+parasites38$TP_c <- c(rep(mean(parasites38$TP), 4), diff(parasites38$TP, lag = 4))
+
+flies38_c <- flies38[,'TF_c']
+parasites38_c <- parasites38[,'TP_c']
+fliesparasites38_c <- cbind(flies38_c, parasites38_c)
+
+acf(fliesparasites38_c, lag.max = 20, plot = TRUE)
+#WEEKS 4 AND EIGHT ARE IMPORTANT IN THIS RUN
