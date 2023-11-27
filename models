@@ -1,0 +1,19 @@
+```{r}
+# Linear models
+time_index <- time(ts_flies)
+linear_model <- lm(ts_flies ~ time_index)
+
+time_index <- time(ts_para)
+linear_model <- lm(ts_para ~ time_index)
+```
+
+```{r}
+# auto.ARIMA model
+library(forecast)
+
+arima_flies <- auto.arima(ts_flies)
+plot(fitted(arima_flies), col = "red", xlab = "Time", ylab = "Value", main = "ARIMA Fitted Values Flies")
+
+arima_para <- auto.arima(ts_para)
+plot(fitted(arima_para), col = "red", xlab = "Time", ylab = "Value", main = "ARIMA Fitted Values Parasites")
+```

@@ -1,6 +1,0 @@
-# Linear model
-time_index <- time(ts_flies)
-linear_model <- lm(ts_flies ~ time_index)
-
-time_index <- time(ts_para)
-linear_model <- lm(ts_para ~ time_index)
