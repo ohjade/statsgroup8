@@ -17,3 +17,36 @@ plot(fitted(arima_flies), col = "red", xlab = "Time", ylab = "Value", main = "AR
 autoarima_para <- auto.arima(ts_para)
 plot(fitted(arima_para), col = "red", xlab = "Time", ylab = "Value", main = "ARIMA Fitted Values Parasites")
 ```
+
+```{r}
+# ADF test to check for stationarity
+differencing_count <- 0
+
+adf_test <- adf.test(ts_flies)
+print(adf_test) # p-value > 0.05 indicates series is non-stationary
+# write a while loop here to run differencing as long as series is non-stationary
+while (adf_test$p.value > 0.05) {  # Adjust the significance level as needed
+  ts_flies_diff <- diff(ts_flies)
+  adf_test <- adf.test(ts_flies_diff)
+  differencing_count <- differencing_count + 1
+  print(adf_test)
+}
+
+cat("Number of differencing steps:", differencing_count, "\n")
+
+```
+```{r}
+#Repeat d calculation for parasites
+differencing_count <- 0
+adf_test <- adf.test(ts_para)
+print(adf_test) # p-value > 0.05 indicates series is non-stationary
+# write a while loop here to run differencing as long as series is non-stationary
+while (adf_test$p.value > 0.05) {  # Adjust the significance level as needed
+  ts_para_diff <- diff(ts_para)
+  adf_test <- adf.test(ts_para_diff)
+  differencing_count <- differencing_count + 1
+  print(adf_test)
+}
+cat("Number of differencing steps:", differencing_count, "\n")
+```
+d = differencing order - represents number of times the series needs to be differences for stationarity.
