@@ -1,0 +1,243 @@
+---
+title: "ecotimeseries"
+output: html_document
+date: "2023-11-27"
+---
+```{r}
+# Install and load necessary packages
+install.packages("readxl")
+library(readxl)
+install.packages("dplyr")
+library(dplyr)
+install.packages("zoo")
+library(zoo)
+install.packages("TTR")
+install.packages("forecast")
+
+```
+
+```{r}
+# Read and check excel data
+c14 <- read_excel("/Users/jadeoh/RStudio/eco_time_series/c14.xlsx")
+head(c14)
+flies = c14$TotalFlies
+fliestime = c(c14$TotalFlies, c14$Week)
+parasites = c14$TotalPara
+paratime <- c(c14$TotalParaA, c14$Week)
+fliespara <- c(c14$TotalFlies, c14$TotalParaA)
+```
+```{r}
+# Extract relevant columns into new dataframe
+c14_df <- c14 %>% select(Week, TotalFlies, TotalPara) # add %>% pull() if we want this to be a vector
+head(c14_df)
+```
+
+```{r}
+# Plot the time series to visually inspect flies and parasites over time.
+ggplot(c14, aes(x = Week)) +
+  geom_line(aes(y = TotalFlies), color = "blue", size = 1, linetype = "solid", alpha = 0.8) +
+  geom_line(aes(y = TotalPara), color = "red", size = 1, linetype = "solid", alpha = 0.8) +
+  labs(title = "Flies and Parasites Over Time",
+       x = "Weeks",
+       y = "Counts")
+```
+
+```{r}
+# Convert dataframe into time series object
+ts_flies <- zoo(c14$TotalFlies, order.by = c14$Week)
+ts_para <- zoo(c14$TotalPara, order.by = c14$Week)
+summary(ts_flies)
+summary(ts_para)
+```
+
+Can't use decomposition function because data is not long enough/lacks seasonality, which i guess should be expected? The functions are unable to detect a clear periodic pattern in the time series
+```{r}
+# Testing out some decomposition functions, but none of them seem to work. Just leaving them in here for future ref.
+
+# decomposition <- decompose(ts_flies)
+# decomposition_stl <- stl(ts_flies, s.window = "periodic")
+# 
+# library(seasonal)
+# decomposition <- seas(ts_para)
+# plot(decomposition)
+```
+```{r}
+# Calculating simple moving averages
+# Moving averages. Smooth out short-term fluctuations + highlight long-term trends.
+library(TTR)
+window_size <- 3 #Not sure how we choose window size tbh
+MA_flies <- SMA(ts_flies, n = window_size)
+MA_para <- SMA(ts_para, n = window_size)
+```
+
+```{r}
+# Linear model
+time_index <- time(ts_flies)
+lm_flies <- lm(ts_flies ~ time_index)
+summary(lm_flies)
+plot(lm_flies)
+plot(residuals(lm_flies))
+
+time_index <- time(ts_para)
+lm_para <- lm(ts_para ~ time_index)
+summary(lm_para)
+plot(lm_para)
+
+lm_fliespara <- lm(ts_flies ~ ts_para+time_index)
+summary(lm_fliespara)
+
+plot(lm_fliespara)
+```
+
+
+```{r}
+# auto.ARIMA model - searches for best ARIMA model based on AIC
+library(forecast)
+
+autoarima_flies <- auto.arima(ts_flies)
+autoarima_flies_forecast <- forecast(autoarima_flies, 52)
+plot(fitted(autoarima_flies), col = "red", xlab = "Time", ylab = "Value", main = "auto.ARIMA Fitted Values Flies", xlim = c(1, length(ts_flies) + 52))
+lines(autoarima_flies_forecast$mean, col = "pink")
+
+plot(autoarima_flies_forecast) # Shows historical timeseries, forecast for future points + uncertainty of those forecasts.
+
+autoarima_para <- auto.arima(ts_para)
+autoarima_para_forecast <- forecast(autoarima_para, 52)
+plot(fitted(autoarima_para), col = "red", xlab = "Time", ylab = "Value", main = "auto.ARIMA Fitted Values Parasites", xlim = c(1, length(ts_flies) + 52))
+lines(autoarima_para_forecast$mean, col = "pink")
+# Predictions flatten out cos it's using the mean??
+
+plot(autoarima_para_forecast)
+```
+```{r}
+# Plot ACF
+plot(ts_flies, main = "ts_flies", ylab = "Value")
+acf_values = acf(ts_flies)
+
+
+arimamodel = Arima(ts_flies, c(1,0,1)) #autoregressive, integrating(not important for us), moving average
+str(arimamodel)
+
+modelforecast = forecast(arimamodel, 48)
+str(modelforecast)
+modelforecast$mean
+
+#Adding forecast to plot
+plot(ts_flies)
+lines(modelforecast$mean, col = "pink")
+```
+
+```{r}
+# ADF test to check for stationarity
+differencing_count <- 0
+
+adf_test <- adf.test(ts_flies)
+print(adf_test) # p-value > 0.05 indicates series is non-stationary
+# write a while loop here to run differencing as long as series is non-stationary
+while (adf_test$p.value > 0.05) {  # Adjust the significance level as needed
+  ts_flies_diff <- diff(ts_flies)
+  adf_test <- adf.test(ts_flies_diff)
+  differencing_count <- differencing_count + 1
+  print(adf_test)
+}
+
+cat("Number of differencing steps:", differencing_count, "\n")
+
+```
+
+```{r}
+#Repeat d calculation for parasites
+differencing_count <- 0
+adf_test <- adf.test(ts_para)
+print(adf_test) # p-value > 0.05 indicates series is non-stationary
+# write a while loop here to run differencing as long as series is non-stationary
+while (adf_test$p.value > 0.05) {  # Adjust the significance level as needed
+  ts_para_diff <- diff(ts_para)
+  adf_test <- adf.test(ts_para_diff)
+  differencing_count <- differencing_count + 1
+  print(adf_test)
+}
+cat("Number of differencing steps:", differencing_count, "\n")
+```
+
+d = differencing order - represents number of times the series needs to be differences for stationarity.
+
+```{r}
+# Calculating q - moving average order
+print(ts_flies)
+pacf_result <- pacf(ts_flies)
+plot(pacf_result, main = "Partial Autocorrelation Function (PACF)")
+
+```
+The q value is the highest significant lag in the PACF plot - looks like 11 here?
+
+
+```{r}
+# ARIMA model
+arima_flies <- arima(ts_flies, order = c(4, differencing_count, 11))
+predicted_values <- predict(arima_flies, n.ahead = length(ts_flies))
+
+# Plot the original data and the predicted values
+plot(ts_flies, type = "l", col = "blue", xlab = "Time", ylab = "Value", main = "ARIMA vs Original Data", xlim = c(1, length(ts_flies) + 100))
+lines(predicted_values$pred, col = "red", lty = 2)
+
+# Add legend
+legend("topright", legend = c("ts_flies", "ARIMA Predictions"), col = c("blue", "red"), lty = c(1, 2))
+```
+
+
+```{r}
+# Basic plotting of time series all the other stuff we calculated
+plot(ts_flies, xlab = "Time", ylab = "Value", main = "Time Series of Flies")
+abline(lm_flies, col = "red")
+# lines(MA_flies, col = "purple")
+lines(fitted(arima_flies), col = "lightgreen")
+
+plot(ts_para, xlab = "Time", ylab = "Value", main = "Time Series of Parasites")
+abline(lm_para, col = "red")
+# lines(MA_para, col = "purple")
+lines(fitted(arima_para), col = "lightgreen")
+```
+```
+
+
+
+```{r}
+
+#Do the acf to determine the autoregressive (p) component in an ARIMA model
+#All data interactions, 2x2 plot
+acf(fliespara, lag.max = 20, plot = TRUE)
+```
+
+
+#Not stationary
+#Best to use 4 as lifespan of fly, or maybe 5
+#Then do for other three series
+
+#Condition the data?
+#Flies
+```{r}
+flies$TF_c <- c(rep(mean(flies$TF), 4), diff(flies$TF, lag = 4))
+#Parasites
+parasites$TP_c <- c(rep(mean(parasites$TA), 4), diff(parasites$TA, lag = 4))
+
+#Join back together
+flies_c <- flies[,'TF_c']
+parasites_c <- parasites[,'TP_c']
+fliesparasites_c <- cbind(flies_c, parasites_c)
+```
+
+
+#Replot the conditioned data
+```{r}
+acf(fliesparasites_c, lag.max = 20, plot = TRUE)
+```
+
+
+#Next steps: look at the other cage runs
+#Are the significant lags at the same place?
+#The lags once corrected then become the number of weeks you specified in the diff
+#Can look if there is the same importance of weeks in the other three time series
+#Linear modelling and comparison (on ln scale data)
+#ARMA model on a log scale, choose the same noisy parameter as the ACF one
+
