@@ -156,6 +156,25 @@ Highlight how different these replicates are.
 My bit: how well does forecasting work with lienear models? (not very well)
 Alice: VAR approach reasonably well at first, but when adding complexity it breaks down and thus we need non-linear models.
 
+Environmental stochasticity
+Demographic stochasticity: variation within flies, wasps e.g. some less fecund than others, some more resilient than others.
+
+Conglomerate of measurement error, environmental stochasticity, individual stochasticity.
+
+Decompose all that understanding and ideas into measurements associated into all these sources of variation and heterogeneity. 
+
+We can only forecast one week ahead with this model. this highlights that linear models aren't the right approach
+
+predator prey interactions oscillate and are not linear.
+
+chaos statistics
+
+Non linear model, non-normal distribution, and conditioning. This makes it machine learning. But it's just from the adding of those 3 things. '
+
+GAM general additive model would be useful.
+GAMs work very well when there's lots of data and less well when there's sparse data.
+
+
 ARIMA model and predictions attempt 2
 ```{r}
 library(stats)
