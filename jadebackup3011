@@ -64,6 +64,7 @@ Can't use decomposition function because data is not long enough/lacks seasonali
 # decomposition <- seas(ts_para)
 # plot(decomposition)
 ```
+
 ```{r}
 # Calculating simple moving averages
 # Moving averages. Smooth out short-term fluctuations + highlight long-term trends.
@@ -124,9 +125,16 @@ ts_flies_test <- ts_flies[(splitpoint+1):n]
 # Fit arima model and generate predictions
 library(forecast)
 ts_flies_model <- auto.arima(ts_flies_train)
-ts_flies_prediction <- forecast(ts_flies_model, h = length(ts_flies)
+ts_flies_prediction <- forecast(ts_flies_model, h = 100)
 
+plot(ts_flies)
+plot(ts_flies_prediction$fitted, col = "orange")
+
+```
+
+```{r}
 library(Metrics)
+
 #Mean Absolute Error (MAE), Mean Squared Error (MSE), and Root Mean Squared Error (RMSE).
 mae_flies <- mae(ts_flies_prediction, ts_flies_test)
 mse_flies <- mse(ts_flies_prediction$fitted, ts_flies_test)
@@ -136,16 +144,20 @@ cat(mae_flies, mse_flies, rmse_flies)
 ```
 
 ```{r}
-plot(ts_flies_test, col = "blue", xlab = "Weeks", ylab = "Value", main = "ARIMA prediction vs actual")
+plot(ts_flies, col = "blue", xlab = "Weeks", ylab = "Value", main = "ARIMA prediction vs actual")
 lines(ts_flies_prediction$fitted, col = "red", lty = 2)
 
-plot(ts_flies_test, col = "black", xlab = "Time", ylab = "Value", main = "ARIMA predictions vs Actual", xlim = c(1, length(ts_flies) + 52))
+plot(ts_flies, col = "black", xlab = "Time", ylab = "Value", main = "ARIMA predictions vs Actual", xlim = c(1, length(ts_flies)))
 lines(ts_flies_prediction$fitted, col = "pink")
 lines(ts_flies_test)
+```
 
-plot(ts_flies)
-lines(ts_flies_prediction$fitted, col = "pink")
-lines(ts_flies_test, col = "orange")
+```{r}
+plot(ts_flies, xlim = c(1, length(ts_flies)), ylim =c(-400, 400), col = "black")
+plot(ts_flies_prediction$fitted, xlim = c(1, length(ts_flies)), ylim = c(-400, 400), col = "pink")
+par(new = TRUE)
+plot(ts_flies_prediction, xlim = c(1, length(ts_flies)), ylim = c(-400, 400))
+
 ```
 
 
