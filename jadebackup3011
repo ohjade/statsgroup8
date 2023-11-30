@@ -125,12 +125,45 @@ ts_flies_test <- ts_flies[(splitpoint+1):n]
 # Fit arima model and generate predictions
 library(forecast)
 ts_flies_model <- auto.arima(ts_flies_train)
-ts_flies_prediction <- forecast(ts_flies_model, h = 100)
+ts_flies_prediction <- forecast(ts_flies_model, h = 159)
 
-plot(ts_flies)
+plot(ts_flies_prediction)
+lines(ts_flies_prediction$fitted, col = "pink")
+
+plot(ts_flies_train, xlim = c(1, length(ts_flies)), ylim = c(-400, 400))
+plot(ts_flies_test, xlim = c(1, length(ts_flies)), ylim = c(-400, 400))
+par(new = TRUE)
 plot(ts_flies_prediction$fitted, col = "orange")
 
 ```
+
+Highlighting limitations of arima forecasting
+because it's an additive model of linear models
+try forecasting for a week or two and then 
+how can i predict the next week from the MA? then 2 weeks? 4 weeks?
+Linearising isn't always a good thing to do, so this shows the limitations of linear approaches to time series
+
+Non-linear models e.g. in the bruchids.txt
+dependent on multiplicative growth of the population
+
+How far can we get with linear time series analysis? (not very far)
+They're not sufficient for modelling the complexity of the interactions
+Tells us we need to move to a different, non-linear framework.
+
+How much can we believe in replication? Variation and heterogeneity between replicates even though they're meant to be in a controlled environment. Do they differe in mean, variation or coefficient?
+Highlight how different these replicates are.
+
+My bit: how well does forecasting work with lienear models? (not very well)
+Alice: VAR approach reasonably well at first, but when adding complexity it breaks down and thus we need non-linear models.
+
+ARIMA model and predictions attempt 2
+```{r}
+library(stats)
+stats_arima <- stats::arima(ts_flies_test, order=c(0,1,2))
+print(stats_arima)
+plot(stats_arima)
+```
+
 
 ```{r}
 library(Metrics)
