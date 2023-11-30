@@ -1,0 +1,56 @@
+```{r}
+# auto.ARIMA model - searches for best ARIMA model based on AIC
+library(forecast)
+
+autoarima_flies <- auto.arima(ts_flies)
+autoarima_flies_forecast <- forecast(autoarima_flies, 52)
+plot(fitted(autoarima_flies), col = "red", xlab = "Time", ylab = "Value", main = "auto.ARIMA Fitted Values Flies", xlim = c(1, length(ts_flies) + 52))
+lines(autoarima_flies_forecast$mean, col = "pink")
+
+plot(autoarima_flies_forecast) # Shows historical timeseries, forecast for future points + uncertainty of those forecasts.
+
+autoarima_para <- auto.arima(ts_para)
+autoarima_para_forecast <- forecast(autoarima_para, 52)
+plot(fitted(autoarima_para), col = "red", xlab = "Time", ylab = "Value", main = "auto.ARIMA Fitted Values Parasites", xlim = c(1, length(ts_flies) + 52))
+lines(autoarima_para_forecast$mean, col = "pink")
+# Predictions flatten out cos it's using the mean??
+
+plot(autoarima_para_forecast)
+```
+
+Arima model and predictions
+```{r}
+# Split the timeseries in half, into training and testing data
+n <- length(ts_flies)
+splitpoint <- floor(n/2)
+ts_flies_train <- ts_flies[1:splitpoint]
+ts_flies_test <- ts_flies[(splitpoint+1):n]
+
+# Fit arima model and generate predictions
+library(forecast)
+ts_flies_model <- auto.arima(ts_flies_train)
+ts_flies_prediction <- forecast(ts_flies_model, h = (length(ts_flies_train) + length(ts_flies_test)))
+plot(ts_flies_prediction$residuals)
+
+library(Metrics)
+
+#Mean Absolute Error (MAE), Mean Squared Error (MSE), and Root Mean Squared Error (RMSE).
+mae_flies <- mae(ts_flies_prediction, ts_flies_test)
+mse_flies <- mse(ts_flies_prediction$fitted, ts_flies_test)
+rmse_flies <- sqrt(mse_flies)
+
+cat(mae_flies, mse_flies, rmse_flies)
+```
+
+```{r}
+plot(ts_flies, col = "blue", xlab = "Weeks", ylab = "Value", main = "ARIMA prediction vs actual")
+lines(ts_flies_prediction$fitted, col = "red", lty = 2)
+
+plot(ts_flies, col = "black", xlab = "Time", ylab = "Value", main = "ARIMA predictions vs Actual", xlim = c(1, length(ts_flies) + 52))
+lines(ts_flies_prediction$fitted, col = "pink")
+lines(ts_flies_test)
+
+plot(ts_flies)
+lines(ts_flies_prediction$fitted, col = "pink")
+lines(ts_flies_test, col = "orange")
+```
